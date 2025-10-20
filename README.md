@@ -61,7 +61,7 @@ Important: Place both files in the same folder on your PC.
 
 Open a terminal or command prompt.
 
-Navigate to the folder where you saved the files.
+Navigate to the folder where you saved the files with "cd"
 
 Run the server with the command:
 
