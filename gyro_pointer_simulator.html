@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Gyro Mouse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: transparent;
+            color: #c9d1d9;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #starfield-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #0d1117;
+            transition: opacity 0.5s ease;
+        }
+        .view {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            position: absolute;
+            width: 100%;
+            max-width: 400px;
+            padding: 0 1rem;
+        }
+        .view:not(.active-view) {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        .card {
+            background-color: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid #30363d;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        #control-view {
+            display: none; /* Hidden by default */
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #left-area, #right-area {
+             background: radial-gradient(circle at 50% 50%, var(--tw-gradient-from) 0%, transparent 70%);
+        }
+        #left-area { --tw-gradient-from: rgba(59, 130, 246, 0.1); }
+        #right-area { --tw-gradient-from: rgba(190, 24, 93, 0.1); }
+        .scrolling-active {
+            --tw-gradient-from: rgba(34, 197, 94, 0.2) !important;
+            transition: background-color 0.2s ease;
+        }
+        .calib-btn { transition: background-color 0.2s, border-color 0.2s; }
+        .calib-done {
+            background-color: #238636 !important;
+            border-color: #3fb950 !important;
+            color: white;
+        }
+        .toggle-bg { background-color: #30363d; }
+        .toggle-checkbox:checked + .toggle-bg { background-color: #238636; }
+        .toggle-checkbox:checked + .toggle-bg .toggle-dot {
+            transform: translateX(100%);
+        }
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { height: 8px; background: #30363d; border-radius: 5px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; background: #c9d1d9; border-radius: 50%; margin-top: -6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <canvas id="starfield-canvas"></canvas>
+
+    <!-- Setup View -->
+    <div id="setup-view" class="view active-view">
+        <div class="card">
+            <h1 class="text-3xl font-bold mb-2 text-white">Gyro Mouse</h1>
+            <p class="mb-6 text-gray-400">Control your PC's mouse via gyroscope.</p>
+            <input id="server-ip" type="text" placeholder="Server IP, e.g., 192.168.1.42"
+                   class="border bg-[#0d1117] border-gray-700 text-white p-3 rounded-lg w-full mb-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+            <button id="connect-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 w-full rounded-lg transition-colors">Connect</button>
+            <p id="status" class="mt-4 text-sm text-gray-500">Status: Ready.</p>
+        </div>
+    </div>
+
+    <!-- Mode Selection View -->
+    <div id="mode-selection-view" class="view">
+        <div class="card">
+            <h2 class="text-2xl font-bold mb-4 text-white">Select Mode</h2>
+            <div class="space-y-4">
+                <button id="absolute-mode-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 w-full rounded-lg transition-colors">Absolute Mode</button>
+                <button id="relative-mode-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 w-full rounded-lg transition-colors">Relative Mode</button>
+            </div>
+            <div class="mt-6 border-t border-gray-700 pt-4 text-left space-y-4">
+                 <label for="jitter-toggle" class="flex items-center justify-between cursor-pointer">
+                    <span class="text-base font-medium text-white">Dynamic Anti-Jitter</span>
+                    <div class="flex items-center space-x-3">
+                        <span id="jitter-status" class="text-gray-400 font-bold w-8 text-right text-sm">On</span>
+                        <div class="relative">
+                            <input type="checkbox" id="jitter-toggle" class="sr-only toggle-checkbox" checked>
+                            <div class="toggle-bg block w-14 h-8 rounded-full transition-colors">
+                                 <div class="toggle-dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform"></div>
+                            </div>
+                        </div>
+                    </div>
+                </label>
+                 <label for="smoothing-slider" class="block">
+                    <div class="flex justify-between items-center">
+                        <span class="text-base font-medium text-white">Smoothing</span>
+                        <span id="smoothing-value-label" class="text-gray-400 font-bold text-sm">Medium</span>
+                    </div>
+                    <input type="range" id="smoothing-slider" min="0.05" max="0.5" value="0.25" step="0.01" class="w-full mt-2">
+                 </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calibration View -->
+    <div id="calibration-view" class="view">
+        <div class="card">
+            <h2 class="text-2xl font-bold mb-2 text-white">Calibration</h2>
+            <p class="mb-6 text-gray-400">Point your phone at the 5 dots and tap.</p>
+            <div class="grid grid-cols-3 grid-rows-3 gap-2 h-40">
+                <div class="flex items-start justify-start"><button data-point="tl" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Top L</button></div>
+                <div></div>
+                <div class="flex items-start justify-end"><button data-point="tr" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Top R</button></div>
+                <div class="flex items-center justify-center col-span-3"><button data-point="c" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Center</button></div>
+                <div class="flex items-end justify-start"><button data-point="bl" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Bottom L</button></div>
+                <div></div>
+                <div class="flex items-end justify-end"><button data-point="br" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Bottom R</button></div>
+            </div>
+            <p id="calib-status" class="mt-4 text-yellow-400 font-semibold">Calibration incomplete.</p>
+            <button id="reset-calib-btn" class="mt-4 text-xs text-gray-500 hover:text-gray-300">Reset</button>
+        </div>
+    </div>
+
+    <!-- Control View -->
+    <div id="control-view" class="flex">
+        <div id="left-area" class="w-1/2 h-full"></div>
+        <div id="right-area" class="w-1/2 h-full"></div>
+        <div class="absolute bottom-5 w-full text-center text-white opacity-40 text-sm pointer-events-none">Hold Left + Right to Scroll</div>
+    </div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        let ws;
+        let currentMode = 'absolute';
+        let isLeftPressed = false, isRightPressed = false, isScrolling = false;
+        let lastOrientationEvent = null, lastMotionEvent = null;
+        let controlReady = false;
+        let animationFrameId;
+        let stars = [];
+
+        const views = {
+            setup: document.getElementById('setup-view'),
+            modeSelection: document.getElementById('mode-selection-view'),
+            calibration: document.getElementById('calibration-view'),
+            control: document.getElementById('control-view')
+        };
+        const statusMsg = document.getElementById('status');
+        const calibStatusMsg = document.getElementById('calib-status');
+        const calibButtons = document.querySelectorAll('.calib-btn');
+        const jitterStatus = document.getElementById('jitter-status');
+        const jitterToggle = document.getElementById('jitter-toggle');
+        const smoothingSlider = document.getElementById('smoothing-slider');
+        const smoothingLabel = document.getElementById('smoothing-value-label');
+        const starfieldCanvas = document.getElementById('starfield-canvas');
+        const starfieldCtx = starfieldCanvas.getContext('2d');
+        const leftArea = document.getElementById('left-area');
+        const rightArea = document.getElementById('right-area');
+
+        function setupStars() {
+            starfieldCanvas.width = window.innerWidth;
+            starfieldCanvas.height = window.innerHeight;
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * starfieldCanvas.width,
+                    y: Math.random() * starfieldCanvas.height,
+                    radius: Math.random() * 1.5,
+                    speed: Math.random() * 0.5 + 0.2
+                });
+            }
+        }
+
+        function drawStars() {
+            if (!starfieldCtx) return;
+            starfieldCtx.clearRect(0, 0, starfieldCanvas.width, starfieldCanvas.height);
+            starfieldCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            stars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > starfieldCanvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * starfieldCanvas.width;
+                }
+                starfieldCtx.beginPath();
+                starfieldCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                starfieldCtx.fill();
+            });
+            animationFrameId = requestAnimationFrame(drawStars);
+        }
+
+        function startStarfield() {
+            starfieldCanvas.style.opacity = '1';
+            if (!animationFrameId) {
+                setupStars();
+                drawStars();
+            }
+        }
+        function stopStarfield() {
+            starfieldCanvas.style.opacity = '0';
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
+        
+        function switchView(viewName) {
+            Object.keys(views).forEach(key => {
+                 if (key !== 'control') views[key].classList.remove('active-view');
+            });
+            
+            if (viewName !== 'control') {
+                views[viewName].classList.add('active-view');
+            }
+            
+            if (viewName === 'setup' || viewName === 'modeSelection') startStarfield();
+            else stopStarfield();
+
+            if (viewName === 'control') {
+                views.control.style.display = 'flex';
+                setTimeout(() => views.control.style.opacity = '1', 10);
+            } else {
+                views.control.style.opacity = '0';
+                setTimeout(() => {
+                    if (views.control.style.display === 'flex' && viewName !== 'control') {
+                         views.control.style.display = 'none';
+                    }
+                }, 300);
+            }
+        }
+        
+        function sendToServer(data) {
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
+        }
+
+        function connectToServer() {
+            let ip = document.getElementById('server-ip').value.trim().split(':')[0];
+            if (!ip) { statusMsg.textContent = "Error: IP address is missing."; return; }
+            document.getElementById('server-ip').value = ip;
+            statusMsg.textContent = `Connecting to ${ip}...`;
+            ws = new WebSocket(`ws://${ip}:8080`);
+            ws.onopen = () => {
+                statusMsg.textContent = "Connected!";
+                sendToServer({ action: 'set_jitter_reduction', enabled: jitterToggle.checked });
+                sendToServer({ action: 'set_smoothing', value: smoothingSlider.value });
+                requestSensorPermission();
+            };
+            ws.onclose = () => {
+                statusMsg.textContent = "Connection lost.";
+                resetCalibration();
+                switchView('setup');
+            };
+            ws.onerror = () => { statusMsg.textContent = "Connection error. Is the server running?"; };
+        }
+        
+        function requestSensorPermission() {
+            const start = () => {
+                window.addEventListener('deviceorientation', (e) => lastOrientationEvent = e);
+                window.addEventListener('devicemotion', (e) => lastMotionEvent = e.accelerationIncludingGravity);
+                switchView('modeSelection');
+                requestAnimationFrame(sendSensorDataLoop);
+            };
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                Promise.all([
+                    DeviceOrientationEvent.requestPermission(),
+                    DeviceMotionEvent.requestPermission()
+                ]).then(results => {
+                    if (results.every(r => r === 'granted')) start();
+                    else statusMsg.textContent = "Sensor access denied.";
+                }).catch(err => statusMsg.textContent = `Sensor error.`);
+            } else { start(); }
+        }
+
+        function sendSensorDataLoop() {
+            if (controlReady && !isScrolling && lastOrientationEvent) {
+                let payload = { action: 'gyro_move', mode: currentMode, b: lastOrientationEvent.beta, g: lastOrientationEvent.gamma, a: lastOrientationEvent.alpha };
+                if (lastMotionEvent) {
+                    payload.accel_x = lastMotionEvent.x;
+                    payload.accel_y = lastMotionEvent.y;
+                    payload.accel_z = lastMotionEvent.z;
+                }
+                sendToServer(payload);
+            }
+            requestAnimationFrame(sendSensorDataLoop);
+        }
+
+        function updateSmoothingLabel(value) {
+            if (value < 0.15) smoothingLabel.textContent = 'Smooth';
+            else if (value > 0.35) smoothingLabel.textContent = 'Direct';
+            else smoothingLabel.textContent = 'Medium';
+        }
+
+        function resetCalibration() {
+            controlReady = false;
+            calibButtons.forEach(btn => btn.classList.remove('calib-done'));
+            calibStatusMsg.textContent = "Calibration incomplete.";
+            calibStatusMsg.classList.remove('text-green-400');
+            calibStatusMsg.classList.add('text-yellow-400');
+            sendToServer({ action: 'reset_calibration' });
+        }
+        
+        function checkCalibrationComplete() {
+            if (document.querySelectorAll('.calib-done').length === 5) {
+                controlReady = true;
+                calibStatusMsg.textContent = "Calibration complete!";
+                calibStatusMsg.classList.replace('text-yellow-400', 'text-green-400');
+                setTimeout(() => switchView('control'), 1000);
+            }
+        }
+
+        function handleTouchStart(side) {
+            if (side === 'left') {
+                isLeftPressed = true;
+                sendToServer({ action: 'mouse_press', button: 'left' });
+            } else if (side === 'right') {
+                isRightPressed = true;
+                if (!isLeftPressed) {
+                    sendToServer({ action: 'mouse_press', button: 'right' });
+                }
+            }
+            updateScrollState();
+        }
+
+        function handleTouchEnd(side) {
+            if (side === 'left') {
+                isLeftPressed = false;
+                sendToServer({ action: 'mouse_release', button: 'left' });
+            } else if (side === 'right') {
+                isRightPressed = false;
+                if (!isLeftPressed || isScrolling) {
+                    sendToServer({ action: 'mouse_release', button: 'right' });
+                }
+            }
+            updateScrollState();
+        }
+        
+        function updateScrollState() {
+            const currentlyScrolling = isLeftPressed && isRightPressed;
+            if (currentlyScrolling && !isScrolling) {
+                isScrolling = true;
+                sendToServer({ action: 'mouse_release', button: 'left' });
+                sendToServer({ action: 'mouse_release', button: 'right' });
+                leftArea.classList.add('scrolling-active');
+                rightArea.classList.add('scrolling-active');
+                window.addEventListener('deviceorientation', handleScroll);
+            } else if (!currentlyScrolling && isScrolling) {
+                isScrolling = false;
+                leftArea.classList.remove('scrolling-active');
+                rightArea.classList.remove('scrolling-active');
+                window.removeEventListener('deviceorientation', handleScroll);
+                if (isLeftPressed) {
+                    sendToServer({ action: 'mouse_press', button: 'left' });
+                }
+            }
+        }
+
+        function handleScroll(event) {
+            if (isScrolling) sendToServer({ action: 'scroll_gesture', delta: event.gamma });
+        }
+
+        document.getElementById('connect-btn').onclick = connectToServer;
+        document.getElementById('absolute-mode-btn').onclick = () => {
+            currentMode = 'absolute';
+            sendToServer({ action: 'mode_change', mode: 'absolute' });
+            switchView('calibration');
+        };
+        document.getElementById('relative-mode-btn').onclick = () => {
+            currentMode = 'relative';
+            controlReady = true;
+            sendToServer({ action: 'mode_change', mode: 'relative' });
+            switchView('control');
+        };
+        document.getElementById('calibration-view').addEventListener('click', (e) => {
+            if (e.target.classList.contains('calib-btn')) {
+                const point = e.target.dataset.point;
+                if (lastOrientationEvent) {
+                    sendToServer({ action: 'calibrate_point', point: point, b: lastOrientationEvent.beta, a: lastOrientationEvent.alpha });
+                    e.target.classList.add('calib-done');
+                    checkCalibrationComplete();
+                } else { calibStatusMsg.textContent = "Please move your phone first."; }
+            }
+        });
+        document.getElementById('reset-calib-btn').onclick = resetCalibration;
+        jitterToggle.onchange = (e) => {
+            const isEnabled = e.target.checked;
+            jitterStatus.textContent = isEnabled ? "On" : "Off";
+            jitterStatus.classList.toggle('text-green-400', isEnabled);
+            sendToServer({ action: 'set_jitter_reduction', enabled: isEnabled });
+        };
+        smoothingSlider.oninput = (e) => {
+            const value = e.target.value;
+            updateSmoothingLabel(value);
+            sendToServer({ action: 'set_smoothing', value: value });
+        };
+        leftArea.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('left'); });
+        leftArea.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('left'); });
+        rightArea.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('right'); });
+        rightArea.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('right'); });
+
+        const ip = window.location.hostname;
+        if (ip && ip !== 'localhost' && ip !== '127.0.0.1' && ip !== "") {
+            document.getElementById('server-ip').value = ip;
+            connectToServer();
+        }
+        updateSmoothingLabel(smoothingSlider.value);
+        switchView('setup');
+
+    });
+</script>
+</body>
+</html>
+
