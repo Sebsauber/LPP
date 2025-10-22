@@ -1,8 +1,4 @@
-# LPP
-This project transforms a smartphone into a precise, gyroscope-controlled mouse for a PC. Control is handled via a webpage on the phone, which sends sensor data (gyroscope &amp; accelerometer) to a Python server running on the PC. This server then translates the phone's movements into mouse actions.
-
-
-Gyro Mouse
+#Gyro Mouse
 
 Turn your smartphone into a powerful, motion-controlled mouse for your PC. Using your phone's built-in gyroscope and a web-based interface, this project allows for precise cursor control over your local Wi-Fi network. No app installation required on your phone!
 
@@ -61,7 +57,7 @@ Important: Place both files in the same folder on your PC.
 
 Open a terminal or command prompt.
 
-Navigate to the folder where you saved the files with "cd"
+Navigate to the folder where you saved the files.
 
 Run the server with the command:
 
