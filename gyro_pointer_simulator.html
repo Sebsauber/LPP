@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Gyro Mouse</title>
+    <title>Handy-Gyro-Maus</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +52,7 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
         }
         #control-view {
-            display: none; /* Hidden by default */
+            display: none; /* Standardmäßig ausgeblendet */
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -88,28 +88,28 @@
     <!-- Setup View -->
     <div id="setup-view" class="view active-view">
         <div class="card">
-            <h1 class="text-3xl font-bold mb-2 text-white">Gyro Mouse</h1>
-            <p class="mb-6 text-gray-400">Control your PC's mouse via gyroscope.</p>
-            <input id="server-ip" type="text" placeholder="Server IP, e.g., 192.168.1.42"
+            <h1 class="text-3xl font-bold mb-2 text-white">Gyro-Maus</h1>
+            <p class="mb-6 text-gray-400">PC-Maus über Gyroskop steuern.</p>
+            <input id="server-ip" type="text" placeholder="Server-IP, z.B. 192.168.0.42"
                    class="border bg-[#0d1117] border-gray-700 text-white p-3 rounded-lg w-full mb-4 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-            <button id="connect-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 w-full rounded-lg transition-colors">Connect</button>
-            <p id="status" class="mt-4 text-sm text-gray-500">Status: Ready.</p>
+            <button id="connect-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 w-full rounded-lg transition-colors">Verbinden</button>
+            <p id="status" class="mt-4 text-sm text-gray-500">Status: Bereit.</p>
         </div>
     </div>
 
     <!-- Mode Selection View -->
     <div id="mode-selection-view" class="view">
         <div class="card">
-            <h2 class="text-2xl font-bold mb-4 text-white">Select Mode</h2>
+            <h2 class="text-2xl font-bold mb-4 text-white">Modus auswählen</h2>
             <div class="space-y-4">
-                <button id="absolute-mode-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 w-full rounded-lg transition-colors">Absolute Mode</button>
-                <button id="relative-mode-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 w-full rounded-lg transition-colors">Relative Mode</button>
+                <button id="absolute-mode-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 w-full rounded-lg transition-colors">Absoluter Modus</button>
+                <button id="relative-mode-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 w-full rounded-lg transition-colors">Relativer Modus</button>
             </div>
             <div class="mt-6 border-t border-gray-700 pt-4 text-left space-y-4">
                  <label for="jitter-toggle" class="flex items-center justify-between cursor-pointer">
-                    <span class="text-base font-medium text-white">Dynamic Anti-Jitter</span>
+                    <span class="text-base font-medium text-white">Dynamisches Anti-Jitter</span>
                     <div class="flex items-center space-x-3">
-                        <span id="jitter-status" class="text-gray-400 font-bold w-8 text-right text-sm">On</span>
+                        <span id="jitter-status" class="text-gray-400 font-bold w-8 text-right text-sm">An</span>
                         <div class="relative">
                             <input type="checkbox" id="jitter-toggle" class="sr-only toggle-checkbox" checked>
                             <div class="toggle-bg block w-14 h-8 rounded-full transition-colors">
@@ -120,8 +120,8 @@
                 </label>
                  <label for="smoothing-slider" class="block">
                     <div class="flex justify-between items-center">
-                        <span class="text-base font-medium text-white">Smoothing</span>
-                        <span id="smoothing-value-label" class="text-gray-400 font-bold text-sm">Medium</span>
+                        <span class="text-base font-medium text-white">Glättung</span>
+                        <span id="smoothing-value-label" class="text-gray-400 font-bold text-sm">Mittel</span>
                     </div>
                     <input type="range" id="smoothing-slider" min="0.05" max="0.5" value="0.25" step="0.01" class="w-full mt-2">
                  </label>
@@ -132,19 +132,28 @@
     <!-- Calibration View -->
     <div id="calibration-view" class="view">
         <div class="card">
-            <h2 class="text-2xl font-bold mb-2 text-white">Calibration</h2>
-            <p class="mb-6 text-gray-400">Point your phone at the 5 dots and tap.</p>
-            <div class="grid grid-cols-3 grid-rows-3 gap-2 h-40">
-                <div class="flex items-start justify-start"><button data-point="tl" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Top L</button></div>
+            <h2 class="text-2xl font-bold mb-2 text-white">Kalibrierung</h2>
+            <div class="grid grid-cols-3 grid-rows-3 gap-2 h-40 mb-4">
+                <div class="flex items-start justify-start"><button data-point="tl" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Oben L.</button></div>
                 <div></div>
-                <div class="flex items-start justify-end"><button data-point="tr" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Top R</button></div>
-                <div class="flex items-center justify-center col-span-3"><button data-point="c" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Center</button></div>
-                <div class="flex items-end justify-start"><button data-point="bl" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Bottom L</button></div>
+                <div class="flex items-start justify-end"><button data-point="tr" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Oben R.</button></div>
+                <div class="flex items-center justify-center col-span-3"><button data-point="c" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Mitte</button></div>
+                <div class="flex items-end justify-start"><button data-point="bl" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Unten L.</button></div>
                 <div></div>
-                <div class="flex items-end justify-end"><button data-point="br" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Bottom R</button></div>
+                <div class="flex items-end justify-end"><button data-point="br" class="calib-btn w-16 h-16 rounded-full border border-gray-600 bg-gray-800 text-xs p-1">Unten R.</button></div>
             </div>
-            <p id="calib-status" class="mt-4 text-yellow-400 font-semibold">Calibration incomplete.</p>
-            <button id="reset-calib-btn" class="mt-4 text-xs text-gray-500 hover:text-gray-300">Reset</button>
+            <div class="bg-gray-900 border border-gray-700 rounded-lg p-3">
+                <div class="flex justify-between items-start">
+                    <div class="text-xs text-gray-400 w-1/2 text-left">
+                        <p>Live Beta: <span id="live-beta" class="font-mono text-white">0</span></p>
+                        <p>Live Alpha: <span id="live-alpha" class="font-mono text-white">0</span></p>
+                        <div id="calib-data-display" class="mt-2 text-gray-500 text-xs"></div>
+                    </div>
+                    <canvas id="visualizer-canvas" class="w-1/2 h-24 bg-[#0d1117] rounded-md border border-gray-600"></canvas>
+                </div>
+            </div>
+            <p id="calib-status" class="mt-4 text-yellow-400 font-semibold">Kalibrierung unvollständig.</p>
+            <button id="reset-calib-btn" class="mt-4 text-xs text-gray-500 hover:text-gray-300">Zurücksetzen</button>
         </div>
     </div>
 
@@ -152,7 +161,7 @@
     <div id="control-view" class="flex">
         <div id="left-area" class="w-1/2 h-full"></div>
         <div id="right-area" class="w-1/2 h-full"></div>
-        <div class="absolute bottom-5 w-full text-center text-white opacity-40 text-sm pointer-events-none">Hold Left + Right to Scroll</div>
+        <div class="absolute bottom-5 w-full text-center text-white opacity-40 text-sm pointer-events-none">Links + Rechts halten: Scrollen</div>
     </div>
 
 <script>
@@ -161,6 +170,7 @@
         let currentMode = 'absolute';
         let isLeftPressed = false, isRightPressed = false, isScrolling = false;
         let lastOrientationEvent = null, lastMotionEvent = null;
+        let calibrationState = {};
         let controlReady = false;
         let animationFrameId;
         let stars = [];
@@ -178,6 +188,8 @@
         const jitterToggle = document.getElementById('jitter-toggle');
         const smoothingSlider = document.getElementById('smoothing-slider');
         const smoothingLabel = document.getElementById('smoothing-value-label');
+        const visualizerCanvas = document.getElementById('visualizer-canvas');
+        const visualizerCtx = visualizerCanvas.getContext('2d');
         const starfieldCanvas = document.getElementById('starfield-canvas');
         const starfieldCtx = starfieldCanvas.getContext('2d');
         const leftArea = document.getElementById('left-area');
@@ -260,22 +272,22 @@
 
         function connectToServer() {
             let ip = document.getElementById('server-ip').value.trim().split(':')[0];
-            if (!ip) { statusMsg.textContent = "Error: IP address is missing."; return; }
+            if (!ip) { statusMsg.textContent = "Fehler: IP-Adresse fehlt."; return; }
             document.getElementById('server-ip').value = ip;
-            statusMsg.textContent = `Connecting to ${ip}...`;
+            statusMsg.textContent = `Verbinde mit ${ip}...`;
             ws = new WebSocket(`ws://${ip}:8080`);
             ws.onopen = () => {
-                statusMsg.textContent = "Connected!";
+                statusMsg.textContent = "Verbunden!";
                 sendToServer({ action: 'set_jitter_reduction', enabled: jitterToggle.checked });
                 sendToServer({ action: 'set_smoothing', value: smoothingSlider.value });
                 requestSensorPermission();
             };
             ws.onclose = () => {
-                statusMsg.textContent = "Connection lost.";
+                statusMsg.textContent = "Verbindung verloren.";
                 resetCalibration();
                 switchView('setup');
             };
-            ws.onerror = () => { statusMsg.textContent = "Connection error. Is the server running?"; };
+            ws.onerror = () => { statusMsg.textContent = "Verbindungsfehler. Server läuft?"; };
         }
         
         function requestSensorPermission() {
@@ -291,12 +303,19 @@
                     DeviceMotionEvent.requestPermission()
                 ]).then(results => {
                     if (results.every(r => r === 'granted')) start();
-                    else statusMsg.textContent = "Sensor access denied.";
-                }).catch(err => statusMsg.textContent = `Sensor error.`);
+                    else statusMsg.textContent = "Sensor-Zugriff verweigert.";
+                }).catch(err => statusMsg.textContent = `Sensor-Fehler.`);
             } else { start(); }
         }
 
         function sendSensorDataLoop() {
+            // Nur Live-Daten aktualisieren, wenn die Kalibrierungsansicht aktiv ist
+            if (views.calibration.classList.contains('active-view') && lastOrientationEvent) {
+                document.getElementById('live-beta').textContent = lastOrientationEvent.beta.toFixed(1);
+                document.getElementById('live-alpha').textContent = lastOrientationEvent.alpha.toFixed(1);
+                drawVisualizer();
+            }
+
             if (controlReady && !isScrolling && lastOrientationEvent) {
                 let payload = { action: 'gyro_move', mode: currentMode, b: lastOrientationEvent.beta, g: lastOrientationEvent.gamma, a: lastOrientationEvent.alpha };
                 if (lastMotionEvent) {
@@ -310,27 +329,74 @@
         }
 
         function updateSmoothingLabel(value) {
-            if (value < 0.15) smoothingLabel.textContent = 'Smooth';
-            else if (value > 0.35) smoothingLabel.textContent = 'Direct';
-            else smoothingLabel.textContent = 'Medium';
+            if (value < 0.15) smoothingLabel.textContent = 'Sanft';
+            else if (value > 0.35) smoothingLabel.textContent = 'Direkt';
+            else smoothingLabel.textContent = 'Mittel';
         }
 
         function resetCalibration() {
+            calibrationState = {};
             controlReady = false;
             calibButtons.forEach(btn => btn.classList.remove('calib-done'));
-            calibStatusMsg.textContent = "Calibration incomplete.";
+            calibStatusMsg.textContent = "Kalibrierung unvollständig.";
             calibStatusMsg.classList.remove('text-green-400');
             calibStatusMsg.classList.add('text-yellow-400');
+            updateCalibrationDataDisplay();
             sendToServer({ action: 'reset_calibration' });
         }
         
+        function updateCalibrationDataDisplay() {
+            const display = document.getElementById('calib-data-display');
+            display.innerHTML = Object.entries(calibrationState)
+                .map(([key, val]) => `${key.toUpperCase()}: B:${val.b.toFixed(0)} A:${val.a.toFixed(0)}`)
+                .join('<br>');
+        }
+        
         function checkCalibrationComplete() {
-            if (document.querySelectorAll('.calib-done').length === 5) {
+            if (Object.keys(calibrationState).length === 5) {
                 controlReady = true;
-                calibStatusMsg.textContent = "Calibration complete!";
+                calibStatusMsg.textContent = "Kalibrierung abgeschlossen!";
                 calibStatusMsg.classList.replace('text-yellow-400', 'text-green-400');
                 setTimeout(() => switchView('control'), 1000);
             }
+        }
+        
+        function drawVisualizer() {
+            const w = visualizerCanvas.width;
+            const h = visualizerCanvas.height;
+            visualizerCtx.clearRect(0,0,w,h);
+
+            if (Object.keys(calibrationState).length < 2 || !lastOrientationEvent) return;
+
+            const points = Object.values(calibrationState);
+            const minBeta = Math.min(...points.map(p => p.b));
+            const maxBeta = Math.max(...points.map(p => p.b));
+            let alphaValues = points.map(p => p.a);
+            
+            let alphaSpan = Math.max(...alphaValues) - Math.min(...alphaValues);
+            if (alphaSpan > 180) {
+                alphaValues = alphaValues.map(a => a < 180 ? a + 360 : a);
+            }
+            const minAlpha = Math.min(...alphaValues);
+            const maxAlpha = Math.max(...alphaValues);
+
+            if (maxAlpha - minAlpha === 0 || maxBeta - minBeta === 0) return;
+            
+            visualizerCtx.strokeStyle = '#30363d';
+            visualizerCtx.strokeRect(2,2,w-4,h-4);
+            
+            let currentAlpha = lastOrientationEvent.alpha;
+            if (alphaSpan > 180 && currentAlpha < 180) { 
+                 currentAlpha += 360;
+            }
+
+            const x = ((currentAlpha - minAlpha) / (maxAlpha - minAlpha)) * w;
+            const y = ((lastOrientationEvent.beta - minBeta) / (maxBeta - minBeta)) * h;
+
+            visualizerCtx.fillStyle = '#3b82f6';
+            visualizerCtx.beginPath();
+            visualizerCtx.arc(x, y, 4, 0, Math.PI*2);
+            visualizerCtx.fill();
         }
 
         function handleTouchStart(side) {
@@ -399,16 +465,19 @@
             if (e.target.classList.contains('calib-btn')) {
                 const point = e.target.dataset.point;
                 if (lastOrientationEvent) {
-                    sendToServer({ action: 'calibrate_point', point: point, b: lastOrientationEvent.beta, a: lastOrientationEvent.alpha });
+                    const data = {b: lastOrientationEvent.beta, a: lastOrientationEvent.alpha};
+                    sendToServer({ action: 'calibrate_point', point: point, ...data });
                     e.target.classList.add('calib-done');
+                    calibrationState[point] = data;
+                    updateCalibrationDataDisplay();
                     checkCalibrationComplete();
-                } else { calibStatusMsg.textContent = "Please move your phone first."; }
+                } else { calibStatusMsg.textContent = "Bitte Handy zuerst bewegen."; }
             }
         });
         document.getElementById('reset-calib-btn').onclick = resetCalibration;
         jitterToggle.onchange = (e) => {
             const isEnabled = e.target.checked;
-            jitterStatus.textContent = isEnabled ? "On" : "Off";
+            jitterStatus.textContent = isEnabled ? "An" : "Aus";
             jitterStatus.classList.toggle('text-green-400', isEnabled);
             sendToServer({ action: 'set_jitter_reduction', enabled: isEnabled });
         };
